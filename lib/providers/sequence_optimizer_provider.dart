@@ -47,10 +47,6 @@ class SequenceOptimizerProvider extends ChangeNotifier {
   List<int>? parseSequence(String input) {
     final text = input.trim();
 
-    if (text == '0') {
-      return [];
-    }
-
     if (text.isEmpty) {
       errorMessage = 'Debe ingresar una secuencia.';
       return null;
@@ -88,12 +84,6 @@ class SequenceOptimizerProvider extends ChangeNotifier {
     final parsed = parseSequence(input);
 
     if (parsed == null) {
-      notifyListeners();
-      return;
-    }
-
-    if (parsed.isEmpty) {
-      errorMessage = 'Entrada 0 detectada. En consola sería salida del sistema.';
       notifyListeners();
       return;
     }
