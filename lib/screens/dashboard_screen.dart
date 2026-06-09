@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,12 +9,7 @@ import '../widgets/result_card.dart';
 import 'login_screen.dart';
 
 enum DashboardSection {
-  inicio,
   ingresar,
-  ascendente,
-  descendente,
-  comparacion,
-  constante,
   historial,
 }
 
@@ -24,9 +21,55 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  DashboardSection selectedSection = DashboardSection.inicio;
+  DashboardSection selectedSection = DashboardSection.ingresar;
 
   final sequenceController = TextEditingController(text: '10 2 5');
+
+  void addToSequence(String value) {
+    final current = sequenceController.text;
+
+    sequenceController.text = current + value;
+    sequenceController.selection = TextSelection.fromPosition(
+      TextPosition(offset: sequenceController.text.length),
+    );
+
+    setState(() {});
+  }
+
+  void deleteLastCharacter() {
+    final current = sequenceController.text;
+
+    if (current.isEmpty) return;
+
+    sequenceController.text = current.substring(0, current.length - 1);
+    sequenceController.selection = TextSelection.fromPosition(
+      TextPosition(offset: sequenceController.text.length),
+    );
+
+    setState(() {});
+  }
+
+  void clearSequenceInput() {
+    sequenceController.clear();
+    setState(() {});
+  }
+
+  void generateRandomSequence() {
+    final random = Random();
+
+    final length = random.nextInt(4) + 3; // entre 3 y 6 elementos
+    final numbers = List.generate(
+      length,
+      (_) => random.nextInt(20) + 1, // números entre 1 y 20
+    );
+
+    sequenceController.text = numbers.join(' ');
+    sequenceController.selection = TextSelection.fromPosition(
+      TextPosition(offset: sequenceController.text.length),
+    );
+
+    setState(() {});
+  }
 
   Widget menuItem({
     required IconData icon,
@@ -36,14 +79,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final selected = selectedSection == section;
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
+      margin: const EdgeInsets.symmetric(vertical: 5),
       child: ListTile(
         selected: selected,
         selectedTileColor: const Color(0xffb2f5ea),
         leading: Icon(icon, color: const Color(0xff063b46)),
-        title: Text(title, style: const TextStyle(color: Color(0xff063b46))),
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xff063b46),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
         ),
         onTap: () {
           setState(() {
@@ -74,10 +123,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Center(
             child: Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.65),
-                borderRadius: BorderRadius.circular(22),
+                color: Colors.white.withValues(alpha: 0.70),
+                borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: const Color(0xff5eead4),
                 ),
@@ -89,36 +138,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 28),
-          menuItem(
-            icon: Icons.dashboard,
-            title: 'Inicio',
-            section: DashboardSection.inicio,
-          ),
+          const SizedBox(height: 30),
           menuItem(
             icon: Icons.edit_note,
             title: 'Ingresar secuencia',
             section: DashboardSection.ingresar,
-          ),
-          menuItem(
-            icon: Icons.trending_up,
-            title: 'Ascendente',
-            section: DashboardSection.ascendente,
-          ),
-          menuItem(
-            icon: Icons.trending_down,
-            title: 'Descendente',
-            section: DashboardSection.descendente,
-          ),
-          menuItem(
-            icon: Icons.compare_arrows,
-            title: 'Comparación',
-            section: DashboardSection.comparacion,
-          ),
-          menuItem(
-            icon: Icons.balance,
-            title: 'Constante',
-            section: DashboardSection.constante,
           ),
           menuItem(
             icon: Icons.history,
@@ -127,8 +151,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const Spacer(),
           ListTile(
-            leading: const Icon(Icons.logout, color: Color(0xff063b46)),
-            title: const Text('Salir', style: TextStyle(color: Color(0xff063b46))),
+            leading: const Icon(
+              Icons.logout,
+              color: Color(0xff063b46),
+            ),
+            title: const Text(
+              'Cerrar sesión',
+              style: TextStyle(
+                color: Color(0xff063b46),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             onTap: () {
               Navigator.pushReplacement(
                 context,
@@ -189,97 +225,379 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget buildInicio(SequenceOptimizerProvider provider) {
-    final best = provider.bestResult;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        buildHeader('Panel principal'),
-        const SizedBox(height: 18),
-        Row(
+  Widget buildIntroCard() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(26),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DashboardCard(
-              icon: Icons.numbers,
-              title: 'Elementos',
-              value: provider.currentSequence.isEmpty
-                  ? '0'
-                  : provider.currentSequence.length.toString(),
-              color: const Color(0xff00b8c4),
+            Container(
+              width: 74,
+              height: 74,
+              decoration: BoxDecoration(
+                color: const Color(0xffe6fffb),
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: const Icon(
+                Icons.psychology_alt,
+                size: 44,
+                color: Color(0xff00b8c4),
+              ),
             ),
-            DashboardCard(
-              icon: Icons.route,
-              title: 'Mejor estrategia',
-              value: best == null ? '-' : best.strategyName,
-              color: const Color(0xff008c95),
-            ),
-            DashboardCard(
-              icon: Icons.attach_money,
-              title: 'Costo mínimo',
-              value: best == null ? '-' : best.totalCost.toString(),
-              color: const Color(0xff10b981),
-            ),
-            DashboardCard(
-              icon: Icons.memory,
-              title: 'Memoización',
-              value: best == null ? '-' : best.memoStates.toString(),
-              color: const Color(0xfff59e0b),
+            const SizedBox(width: 18),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Optimización de secuencias neuronales',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xff102a43),
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Ingrese una secuencia de enteros positivos. El sistema calculará la mejor transformación usando orden ascendente, descendente y constante, aplicando recursividad con memoización.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color(0xff52727a),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 22),
-        Card(
+      ),
+    );
+  }
+
+  Widget virtualKey({
+    required String label,
+    required VoidCallback onPressed,
+    IconData? icon,
+    Color? backgroundColor,
+    Color? foregroundColor,
+    int flex = 1,
+  }) {
+    return Expanded(
+      flex: flex,
+      child: Padding(
+        padding: const EdgeInsets.all(5),
+        child: SizedBox(
+          height: 52,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: backgroundColor ?? Colors.white,
+              foregroundColor: foregroundColor ?? const Color(0xff063b46),
+              elevation: 1,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: Color(0xff99f6e4)),
+              ),
+            ),
+            onPressed: onPressed,
+            child: icon == null
+                ? Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  )
+                : Icon(icon),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildVirtualKeyboard() {
+    return Card(
+      elevation: 1,
+      color: const Color(0xfff0fdfa),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: const BorderSide(color: Color(0xff99f6e4)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.keyboard, color: Color(0xff00b8c4)),
+                SizedBox(width: 8),
+                Text(
+                  'Teclado virtual',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xff102a43),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                virtualKey(label: '1', onPressed: () => addToSequence('1')),
+                virtualKey(label: '2', onPressed: () => addToSequence('2')),
+                virtualKey(label: '3', onPressed: () => addToSequence('3')),
+              ],
+            ),
+            Row(
+              children: [
+                virtualKey(label: '4', onPressed: () => addToSequence('4')),
+                virtualKey(label: '5', onPressed: () => addToSequence('5')),
+                virtualKey(label: '6', onPressed: () => addToSequence('6')),
+              ],
+            ),
+            Row(
+              children: [
+                virtualKey(label: '7', onPressed: () => addToSequence('7')),
+                virtualKey(label: '8', onPressed: () => addToSequence('8')),
+                virtualKey(label: '9', onPressed: () => addToSequence('9')),
+              ],
+            ),
+            Row(
+              children: [
+                virtualKey(
+                  label: 'Espacio',
+                  onPressed: () => addToSequence(' '),
+                  flex: 2,
+                  backgroundColor: const Color(0xffccfbf1),
+                ),
+                virtualKey(label: '0', onPressed: () => addToSequence('0')),
+                virtualKey(
+                  label: 'Borrar',
+                  onPressed: deleteLastCharacter,
+                  icon: Icons.backspace,
+                  backgroundColor: const Color(0xffffedd5),
+                  foregroundColor: const Color(0xff9a3412),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                virtualKey(
+                  label: 'Aleatoria',
+                  onPressed: generateRandomSequence,
+                  icon: Icons.casino,
+                  flex: 2,
+                  backgroundColor: const Color(0xff00b8c4),
+                  foregroundColor: Colors.white,
+                ),
+                virtualKey(
+                  label: 'Limpiar',
+                  onPressed: clearSequenceInput,
+                  icon: Icons.cleaning_services,
+                  backgroundColor: const Color(0xffe0f2fe),
+                  foregroundColor: const Color(0xff0369a1),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildFrequencySummary(SequenceOptimizerProvider provider) {
+    final asc = provider.ascResult;
+    final desc = provider.descResult;
+    final constant = provider.constantResult;
+
+    if (provider.bestResult == null ||
+        asc == null ||
+        desc == null ||
+        constant == null) {
+      return const SizedBox.shrink();
+    }
+
+    final total = asc.totalCost + desc.totalCost + constant.totalCost;
+
+    double percentage(int cost) {
+      if (total == 0) return 0;
+      return cost / total;
+    }
+
+    Widget frequencyItem({
+      required String title,
+      required int cost,
+      required Color color,
+      required IconData icon,
+    }) {
+      return Expanded(
+        child: Card(
+          elevation: 1,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(22),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
+            padding: const EdgeInsets.all(18),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
-                  Icons.psychology_alt,
-                  size: 60,
-                  color: Color(0xff00b8c4),
-                ),
-                const SizedBox(width: 18),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Sistema de optimización de secuencias neuronales',
-                        style: TextStyle(
-                          fontSize: 23,
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: color.withValues(alpha: 0.12),
+                      foregroundColor: color,
+                      child: Icon(icon),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
                           fontWeight: FontWeight.w900,
+                          color: Color(0xff102a43),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Ingrese una secuencia de números enteros positivos. El sistema calculará la transformación mínima para orden ascendente, descendente y constante usando recursividad con memoización.',
-                        style: TextStyle(fontSize: 16),
+                    ),
+                    Text(
+                      cost.toString(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 20,
+                        color: Color(0xff102a43),
                       ),
-                      const SizedBox(height: 18),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            selectedSection = DashboardSection.ingresar;
-                          });
-                        },
-                        icon: const Icon(Icons.play_arrow),
-                        label: const Text('Comenzar análisis'),
-                      ),
-                    ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                LinearProgressIndicator(
+                  value: percentage(cost),
+                  minHeight: 8,
+                  borderRadius: BorderRadius.circular(12),
+                  color: color,
+                  backgroundColor: const Color(0xffe2e8f0),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Costo total: $cost',
+                  style: const TextStyle(
+                    color: Color(0xff52727a),
                   ),
                 ),
               ],
             ),
           ),
         ),
-        if (best != null) ...[
-          const SizedBox(height: 22),
-          ResultCard(result: best, highlighted: true),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 22),
+        const Text(
+          'Comparación de costos',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+            color: Color(0xff102a43),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            frequencyItem(
+              title: 'Ascendente',
+              cost: asc.totalCost,
+              color: const Color(0xff00b8c4),
+              icon: Icons.trending_up,
+            ),
+            const SizedBox(width: 12),
+            frequencyItem(
+              title: 'Descendente',
+              cost: desc.totalCost,
+              color: const Color(0xff7c3aed),
+              icon: Icons.trending_down,
+            ),
+            const SizedBox(width: 12),
+            frequencyItem(
+              title: 'Constante',
+              cost: constant.totalCost,
+              color: const Color(0xff06d6a0),
+              icon: Icons.balance,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget buildSummaryCards(SequenceOptimizerProvider provider) {
+    final best = provider.bestResult;
+
+    if (best == null) {
+      return Row(
+        children: const [
+          DashboardCard(
+            icon: Icons.numbers,
+            title: 'Elementos',
+            value: '0',
+            color: Color(0xff00b8c4),
+          ),
+          DashboardCard(
+            icon: Icons.route,
+            title: 'Mejor estrategia',
+            value: '-',
+            color: Color(0xff008c95),
+          ),
+          DashboardCard(
+            icon: Icons.attach_money,
+            title: 'Costo mínimo',
+            value: '-',
+            color: Color(0xff06d6a0),
+          ),
+          DashboardCard(
+            icon: Icons.memory,
+            title: 'Estados memoizados',
+            value: '-',
+            color: Color(0xfff59e0b),
+          ),
         ],
+      );
+    }
+
+    return Row(
+      children: [
+        DashboardCard(
+          icon: Icons.numbers,
+          title: 'Elementos',
+          value: provider.currentSequence.length.toString(),
+          color: const Color(0xff00b8c4),
+        ),
+        DashboardCard(
+          icon: Icons.route,
+          title: 'Mejor estrategia',
+          value: best.strategyName,
+          color: const Color(0xff008c95),
+        ),
+        DashboardCard(
+          icon: Icons.attach_money,
+          title: 'Costo mínimo',
+          value: best.totalCost.toString(),
+          color: const Color(0xff06d6a0),
+        ),
+        DashboardCard(
+          icon: Icons.memory,
+          title: 'Estados memoizados',
+          value: best.memoStates.toString(),
+          color: const Color(0xfff59e0b),
+        ),
       ],
     );
   }
@@ -292,9 +610,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         buildHeader('Ingresar secuencia'),
         const SizedBox(height: 18),
+        buildIntroCard(),
+        const SizedBox(height: 18),
+        buildSummaryCards(provider),
+        const SizedBox(height: 22),
         Card(
+          elevation: 2,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(26),
           ),
           child: Padding(
             padding: const EdgeInsets.all(26),
@@ -302,26 +625,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Ingrese números enteros positivos separados por espacios.',
-                  style: TextStyle(fontSize: 18),
+                  'Secuencia a analizar',
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Color(0xff102a43),
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Ejemplo: 10 2 5',
-                  style: TextStyle(color: Colors.blueGrey),
+                  'Use el teclado virtual o escriba números enteros positivos separados por espacios. Máximo 6 elementos.',
+                  style: TextStyle(color: Color(0xff52727a)),
                 ),
                 const SizedBox(height: 18),
                 TextField(
                   controller: sequenceController,
+                  readOnly: false,
                   decoration: InputDecoration(
                     labelText: 'Secuencia',
-                    hintText: 'Ejemplo: 5 3 8',
+                    hintText: 'Ejemplo: 10 2 5',
                     prefixIcon: const Icon(Icons.numbers),
+                    suffixIcon: IconButton(
+                      onPressed: clearSequenceInput,
+                      icon: const Icon(Icons.close),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(18),
                     ),
                   ),
                 ),
+                const SizedBox(height: 18),
+                buildVirtualKeyboard(),
                 const SizedBox(height: 18),
                 if (provider.errorMessage != null)
                   Container(
@@ -359,11 +695,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     ),
                                   ),
                                 );
-
-                                setState(() {
-                                  selectedSection =
-                                      DashboardSection.comparacion;
-                                });
                               }
                             },
                       icon: const Icon(Icons.calculate),
@@ -373,10 +704,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     OutlinedButton.icon(
                       onPressed: () {
                         provider.clearResults();
-                        sequenceController.clear();
+                        clearSequenceInput();
                       },
                       icon: const Icon(Icons.delete),
-                      label: const Text('Limpiar'),
+                      label: const Text('Limpiar todo'),
                     ),
                   ],
                 ),
@@ -384,92 +715,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
         ),
-      ],
-    );
-  }
-
-  Widget buildResultOnly({
-    required SequenceOptimizerProvider provider,
-    required String title,
-    required dynamic result,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        buildHeader(title),
-        const SizedBox(height: 18),
-        if (result == null)
-          const Card(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text('Primero debe ingresar y procesar una secuencia.'),
-            ),
-          )
-        else
-          ResultCard(result: result),
-      ],
-    );
-  }
-
-  Widget buildComparacion(SequenceOptimizerProvider provider) {
-    final asc = provider.ascResult;
-    final desc = provider.descResult;
-    final constant = provider.constantResult;
-    final best = provider.bestResult;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        buildHeader('Comparación de estrategias'),
-        const SizedBox(height: 18),
-        if (best == null)
-          const Card(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text('Primero debe ingresar y procesar una secuencia.'),
-            ),
-          )
-        else ...[
-          ResultCard(result: best, highlighted: true),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              DashboardCard(
-                icon: Icons.trending_up,
-                title: 'Ascendente',
-                value: asc!.totalCost.toString(),
-                color: const Color(0xff00b8c4),
-              ),
-              DashboardCard(
-                icon: Icons.trending_down,
-                title: 'Descendente',
-                value: desc!.totalCost.toString(),
-                color: const Color(0xff7c3aed),
-              ),
-              DashboardCard(
-                icon: Icons.balance,
-                title: 'Constante',
-                value: constant!.totalCost.toString(),
-                color: const Color(0xff10b981),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(22),
-              child: Text(
-                'La estrategia más económica fue "${best.strategyName}" con un costo total de ${best.totalCost}.',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+        if (provider.bestResult != null) ...[
+          const SizedBox(height: 22),
+          ResultCard(result: provider.bestResult!, highlighted: true),
+          buildFrequencySummary(provider),
+          const SizedBox(height: 22),
+          const Text(
+            'Resultados completos',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: Color(0xff102a43),
             ),
           ),
+          const SizedBox(height: 10),
+          ResultCard(result: provider.ascResult!),
+          const SizedBox(height: 12),
+          ResultCard(result: provider.descResult!),
+          const SizedBox(height: 12),
+          ResultCard(result: provider.constantResult!),
         ],
       ],
     );
@@ -481,7 +745,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        buildHeader('Historial de análisis'),
+        buildHeader('Historial'),
         const SizedBox(height: 18),
         Row(
           children: [
@@ -510,12 +774,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Column(
             children: reversed.map((item) {
               return Card(
+                elevation: 1,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: ListTile(
-                  leading: const Icon(Icons.history),
-                  title: Text(item),
+                  leading: const CircleAvatar(
+                    backgroundColor: Color(0xffe6fffb),
+                    foregroundColor: Color(0xff00b8c4),
+                    child: Icon(Icons.history),
+                  ),
+                  title: Text(
+                    item,
+                    style: const TextStyle(
+                      color: Color(0xff102a43),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               );
             }).toList(),
@@ -526,30 +801,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget buildSelectedSection(SequenceOptimizerProvider provider) {
     switch (selectedSection) {
-      case DashboardSection.inicio:
-        return buildInicio(provider);
       case DashboardSection.ingresar:
         return buildIngresar(provider);
-      case DashboardSection.ascendente:
-        return buildResultOnly(
-          provider: provider,
-          title: 'Secuencia mínima ascendente',
-          result: provider.ascResult,
-        );
-      case DashboardSection.descendente:
-        return buildResultOnly(
-          provider: provider,
-          title: 'Secuencia mínima descendente',
-          result: provider.descResult,
-        );
-      case DashboardSection.comparacion:
-        return buildComparacion(provider);
-      case DashboardSection.constante:
-        return buildResultOnly(
-          provider: provider,
-          title: 'Secuencia constante',
-          result: provider.constantResult,
-        );
       case DashboardSection.historial:
         return buildHistorial(provider);
     }
