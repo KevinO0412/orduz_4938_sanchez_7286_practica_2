@@ -50,7 +50,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(
-                  'assets/images/neuro_ciencia_logo.png',
+                  'assets/images/neuro_ciencia_logo.webp',
                   width: 170,
                   fit: BoxFit.contain,
                 ),

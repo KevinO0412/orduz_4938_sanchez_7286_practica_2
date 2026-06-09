@@ -132,7 +132,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               child: Image.asset(
-                'assets/images/neuro_ciencia_logo.png',
+                'assets/images/neuro_ciencia_logo.webp',
                 width: 185,
                 fit: BoxFit.contain,
               ),

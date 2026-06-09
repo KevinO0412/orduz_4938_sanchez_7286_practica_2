@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Image.asset(
-                      'assets/images/neuro_ciencia_logo.png',
+                      'assets/images/neuro_ciencia_logo.webp',
                       width: 180,
                       fit: BoxFit.contain,
                     ),
